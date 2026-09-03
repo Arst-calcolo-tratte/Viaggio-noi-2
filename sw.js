@@ -1,4 +1,4 @@
-var CACHE = 'conti-viaggio-v1';
+var CACHE = 'conti-viaggio-v2';
 var ASSETS = [
   './',
   './index.html',
