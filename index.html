@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d2237">
-<meta name="description" content="Tieni il conto di tutte le spese di un viaggio: voci separate, subtotali, rimborsi e saldo finale.">
+<meta name="description" content="Tieni il conto di tutte le spese di uno o più viaggi: voci separate, subtotali, rimborsi, chi ha pagato e saldo finale.">
 <title>Conti di viaggio</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -55,7 +55,7 @@ body::before{
 .wrap{max-width:560px;margin:0 auto;padding:0 16px}
 
 /* ---------- intestazione ---------- */
-.top{padding:26px 0 12px;color:#eaf3fb}
+.top{padding:22px 0 12px;color:#eaf3fb}
 .brand{display:flex;align-items:center;gap:11px}
 .brand-mark{
   width:44px;height:44px;border-radius:14px;flex:0 0 auto;
@@ -65,6 +65,15 @@ body::before{
 }
 .brand h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.2px}
 .brand p{margin:1px 0 0;font-size:13px;color:#8fb0c9;font-weight:300}
+.brand-r{margin-left:auto;display:flex;gap:8px}
+.chip-btn{
+  font-family:inherit;font-size:13px;color:#eaf3fb;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 12px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;font-weight:500;
+}
+.chip-btn:active{background:rgba(255,255,255,.16)}
+.chip-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.chip-btn.icon-only{padding:8px 10px}
 
 /* ---------- scheda viaggio ---------- */
 .trip{
@@ -78,13 +87,20 @@ body::before{
 }
 .trip input::placeholder{color:#7fa0ba}
 .trip input:focus,.trip select:focus{outline:none}
-.trip .sub{display:flex;gap:14px;margin-top:6px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px}
+.trip .sub{display:flex;gap:14px;margin-top:6px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px;flex-wrap:wrap}
 .trip .sub label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#8fb0c9;font-weight:300}
 .trip .sub input{width:62px;font-size:14px;text-align:left}
 .trip select{color:#fff;font-size:14px;width:auto}
 .trip .sub input.dt{width:auto;font-size:13.5px;font-weight:400;color:#cfe1ef}
 .trip .sub input.dt::-webkit-date-and-time-value{text-align:left}
 .trip select option{color:#0b1d30}
+.people-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12)}
+.person-chip{
+  font-size:12.5px;color:#eaf3fb;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;padding:5px 10px 5px 12px;display:flex;align-items:center;gap:6px;
+}
+.person-chip button{background:none;border:0;color:rgba(255,255,255,.6);cursor:pointer;font-size:16px;line-height:1;padding:0;margin-left:2px}
+.person-chip.add{background:transparent;border-style:dashed;color:#8fb0c9;padding:5px 10px;cursor:pointer}
 
 /* ---------- riepilogo 3D ---------- */
 .hero{
@@ -193,6 +209,7 @@ body::before{
 .row .txt{flex:1;min-width:0}
 .row .txt b{display:block;font-size:14.5px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .txt span{font-size:12px;color:var(--muted)}
+.row .txt .payer{color:var(--turq-dark);font-weight:500}
 .row .amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .icon-btn{
   width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);
@@ -224,6 +241,41 @@ body::before{
 .chart-foot div{flex:1;text-align:center}
 .chart-foot span{display:block;font-size:11.5px;color:var(--muted)}
 .chart-foot b{font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- trend giornaliero ---------- */
+.trend{background:var(--paper);border-radius:var(--radius);padding:14px 15px 12px;margin-top:11px;
+  box-shadow:0 5px 0 rgba(4,15,26,.35), 0 14px 22px rgba(4,15,26,.3)}
+.trend h3{margin:0 0 4px;font-size:15px;font-weight:600;color:var(--ink)}
+.trend .tsub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.trend .tbars{display:flex;align-items:flex-end;gap:3px;height:110px;padding-bottom:22px;position:relative;border-bottom:1px dashed var(--line)}
+.trend .tbar{flex:1;min-width:4px;background:linear-gradient(180deg,var(--turq),var(--turq-dark));border-radius:4px 4px 2px 2px;position:relative;transition:height .2s;min-height:2px}
+.trend .tbar.zero{background:#e6edf4}
+.trend .tbar.today{background:linear-gradient(180deg,var(--gold),var(--gold-dark))}
+.trend .tlbl{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:clip}
+.trend .tstat{display:flex;justify-content:space-between;margin-top:12px;font-size:12.5px;color:var(--muted)}
+.trend .tstat b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;margin-left:6px}
+.trend .tempty{color:var(--muted);font-size:13px;font-style:italic;text-align:center;padding:20px 8px}
+
+/* ---------- split chi paga ---------- */
+.split-list{background:var(--paper);border-radius:var(--radius);padding:14px 15px;margin-bottom:11px;
+  box-shadow:0 5px 0 rgba(4,15,26,.35), 0 14px 22px rgba(4,15,26,.3)}
+.split-list h3{margin:0 0 4px;font-size:15px;font-weight:600}
+.split-list .ssub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.split-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.split-row:last-child{border-bottom:0}
+.split-row .av{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:14px}
+.split-row .who{flex:1;min-width:0}
+.split-row .who b{display:block;font-size:14.5px;font-weight:500}
+.split-row .who span{font-size:11.5px;color:var(--muted)}
+.split-row .balance{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.split-row .balance.pos{color:var(--turq-dark)}
+.split-row .balance.neg{color:var(--coral-dark)}
+.split-row .balance .lbl{display:block;font-size:10px;font-weight:400;color:var(--muted);letter-spacing:.6px;text-transform:uppercase}
+.settle{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px}
+.settle b{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;letter-spacing:.3px}
+.settle div{padding:5px 0;color:var(--ink)}
+.settle em{font-style:normal;color:var(--turq-dark);font-weight:600}
+.settle strong{color:var(--coral-dark);font-weight:600}
 
 /* ---------- vuoto ---------- */
 .empty{
@@ -273,12 +325,13 @@ body::before{
 .nc-act .btn{padding:11px 10px;font-size:14.5px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
-.field input,.field textarea{
+.field input,.field textarea,.field select{
   width:100%;font-family:inherit;font-size:16px;padding:13px 14px;border-radius:13px;
   border:1px solid var(--line);background:var(--paper-2);color:var(--ink);
   box-shadow:inset 0 2px 4px rgba(11,29,48,.06);
 }
-.field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,180,34,.25)}
+.field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b8199' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,180,34,.25)}
 .field.money input{font-size:26px;font-weight:600;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
 .two{display:flex;gap:10px}
 .two .field{flex:1}
@@ -289,6 +342,26 @@ body::before{
   background:var(--paper-2);color:#4d6b85;box-shadow:0 3px 0 #dbe4ee;flex:0 0 34%;
 }
 .btn.ghost:active{box-shadow:0 1px 0 #dbe4ee}
+
+/* ---------- lista viaggi ---------- */
+.triplist{margin-bottom:8px}
+.tripcard{
+  background:var(--paper-2);border:1px solid var(--line);border-radius:15px;padding:12px 14px;
+  margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;
+  box-shadow:0 2px 0 #dbe4ee;
+}
+.tripcard:active{transform:translateY(1px);box-shadow:none}
+.tripcard.active{background:#fff6e2;border-color:var(--gold);box-shadow:0 2px 0 var(--gold-dark)}
+.tripcard .ti{width:40px;height:40px;border-radius:12px;background:linear-gradient(160deg,#ffd371,#ffb422 60%,#e8930d);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.tripcard.active .ti{background:linear-gradient(160deg,#4fdcc2,#17bfa6)}
+.tripcard .td{flex:1;min-width:0}
+.tripcard .td b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tripcard .td span{font-size:12px;color:var(--muted)}
+.tripcard .ta{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;flex:0 0 auto}
+.tripcard .ta em{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:400;letter-spacing:.4px;text-transform:uppercase}
+.tripcard .menu{background:none;border:0;padding:4px 6px;cursor:pointer;color:var(--muted);font-size:20px;line-height:1}
+.tripaction{display:flex;gap:9px;margin-top:12px}
+.tripaction .btn{padding:12px 10px;font-size:14.5px}
 
 /* ---------- barra strumenti ---------- */
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;justify-content:center}
@@ -351,7 +424,13 @@ footer .rule em{font-style:normal;font-size:14px}
       <div class="brand-mark">🧳</div>
       <div>
         <h1>Conti di viaggio</h1>
-        <p>Ogni spesa al suo posto, il totale sempre aggiornato</p>
+        <p id="tripSubtitle">Ogni spesa al suo posto, il totale sempre aggiornato</p>
+      </div>
+      <div class="brand-r">
+        <button class="chip-btn" id="btnTrips" aria-label="I miei viaggi">
+          <svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+          <span id="tripsBadge">Viaggi</span>
+        </button>
       </div>
     </div>
 
@@ -371,6 +450,7 @@ footer .rule em{font-style:normal;font-size:14px}
         <label>🛫 <input id="dateFrom" type="date" class="dt"></label>
         <label>🛬 <input id="dateTo" type="date" class="dt"></label>
       </div>
+      <div class="people-row" id="peopleRow"></div>
     </div>
   </div>
 
@@ -412,6 +492,12 @@ footer .rule em{font-style:normal;font-size:14px}
   <div class="sec" id="chartSec" hidden><h2>Dove vanno i soldi</h2><span id="chartSub"></span></div>
   <div id="chartCard"></div>
 
+  <div class="sec" id="trendSec" hidden><h2>Trend giornaliero</h2><span id="trendSub"></span></div>
+  <div id="trendCard"></div>
+
+  <div class="sec" id="splitSec" hidden><h2>Chi paga cosa</h2><span id="splitSub"></span></div>
+  <div id="splitCard"></div>
+
   <div class="sec"><h2>Spese</h2><span id="expCount"></span></div>
   <div id="expList"></div>
 
@@ -421,6 +507,7 @@ footer .rule em{font-style:normal;font-size:14px}
   <div class="tools">
     <button class="tool strong" id="btnPrint"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg> Stampa o PDF</button>
     <button class="tool" id="btnCopy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg> Copia riepilogo</button>
+    <button class="tool" id="btnCsv"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h2M8 17h5M12 13h4"/></svg> Esporta CSV</button>
     <button class="tool" id="btnExport"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Salva backup</button>
     <button class="tool" id="btnImport"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg> Apri backup</button>
     <button class="tool danger" id="btnReset"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg> Azzera</button>
@@ -433,6 +520,7 @@ footer .rule em{font-style:normal;font-size:14px}
   </footer>
 </div>
 
+<!-- pannello nuova spesa/rientro -->
 <div class="sheet-bg" id="sheetBg">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="grab"></div>
@@ -448,9 +536,28 @@ footer .rule em{font-style:normal;font-size:14px}
       <div class="field"><label for="fDesc">Descrizione</label><input id="fDesc" type="text" placeholder="facoltativa" maxlength="60"></div>
       <div class="field" style="flex:0 0 42%"><label for="fDate">Data</label><input id="fDate" type="date"></div>
     </div>
+    <div class="field" id="fPayerWrap" hidden>
+      <label for="fPayer">Pagato da</label>
+      <select id="fPayer"><option value="">— Nessuno —</option></select>
+    </div>
     <div class="actions">
       <button class="btn ghost" id="fCancel">Annulla</button>
       <button class="btn" id="fSave">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- pannello lista viaggi -->
+<div class="sheet-bg" id="tripsSheetBg">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tripsTitle">
+    <div class="grab"></div>
+    <h3 id="tripsTitle">I tuoi viaggi</h3>
+    <div class="triplist" id="tripList"></div>
+    <div class="tripaction">
+      <button class="btn ghost" id="tripsClose">Chiudi</button>
+      <button class="btn" id="btnNewTrip">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nuovo viaggio
+      </button>
     </div>
   </div>
 </div>
@@ -462,6 +569,9 @@ footer .rule em{font-style:normal;font-size:14px}
 (function(){
 "use strict";
 
+/* ============================================================
+   CATEGORIE + PALETTE
+   ============================================================ */
 var CATS = [
   {id:'aereo',    n:'Aereo',            e:'✈️', c:'#3b82f6', s:'#e4efff'},
   {id:'treno',    n:'Treno',            e:'🚆', c:'#6366f1', s:'#e9e9ff'},
@@ -512,43 +622,104 @@ var PALETTE = [
   {c:'#16a34a', s:'#e3f7e8'}, {c:'#db2777', s:'#ffe7f2'}, {c:'#2563eb', s:'#e5edff'},
   {c:'#ca8a04', s:'#fcf3d6'}, {c:'#0d9488', s:'#ddf5f1'}
 ];
+var AVATAR_COLORS = ['#3b82f6','#8b5cf6','#f97316','#16a34a','#db2777','#0891b2','#eab308','#0d9488'];
 var FREE_EMOJI = ['⭐','🔖','🧾','📌','🎯','🧩','🔔','🍀','🔥','💡','🎨','🧭','🛎️','🎪','🚀','🪄'];
 
+/* ============================================================
+   STATO GLOBALE — struttura multi-viaggio v2
+   ============================================================ */
+var KEY = 'conti-viaggio-v2';
+var LEGACY_KEY = 'conti-viaggio-v1';
+
+function newTrip(name){
+  return {
+    id: 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    name: name || '',
+    cur: '€', people: 1, budget: '', from: '', to: '',
+    participants: [],
+    items: [], custom: [], open: {}
+  };
+}
+
+var state = { version: 2, trips: [newTrip('')], currentId: null, uiOpen: {} };
+state.currentId = state.trips[0].id;
+
 var catMap = {};
+
+function currentTrip(){
+  var t = state.trips.filter(function(x){ return x.id === state.currentId; })[0];
+  return t || state.trips[0];
+}
 function allCats(kind){
-  return kind === 'in' ? INCOMES : CATS.concat(state.custom || []);
+  var t = currentTrip();
+  return kind === 'in' ? INCOMES : CATS.concat(t.custom || []);
 }
 function rebuildMap(){
+  var t = currentTrip();
   catMap = {};
-  CATS.concat(INCOMES).concat(state.custom || []).forEach(function(c){ catMap[c.id] = c; });
+  CATS.concat(INCOMES).concat(t.custom || []).forEach(function(c){ catMap[c.id] = c; });
 }
 
-var KEY = 'conti-viaggio-v1';
-var state = {trip:{name:'',cur:'€',people:1,budget:'',from:'',to:''}, items:[], custom:[], open:{}};
-
+/* ---- storage ---- */
 function store(read, val){
   try{
     if(read) return localStorage.getItem(KEY);
     localStorage.setItem(KEY, val);
   }catch(e){ return null; }
 }
+function loadLegacy(){
+  try{
+    var raw = localStorage.getItem(LEGACY_KEY);
+    if(!raw) return null;
+    var d = JSON.parse(raw);
+    if(!d || !d.trip) return null;
+    var t = newTrip(d.trip.name || '');
+    t.cur = d.trip.cur || '€';
+    t.people = parseInt(d.trip.people,10) || 1;
+    t.budget = d.trip.budget || '';
+    t.from = d.trip.from || '';
+    t.to = d.trip.to || '';
+    t.items = Array.isArray(d.items) ? d.items : [];
+    t.custom = Array.isArray(d.custom) ? d.custom : [];
+    return t;
+  }catch(e){ return null; }
+}
 function load(){
   var raw = store(true);
-  if(!raw) return;
+  if(!raw){
+    // provo migrazione dal vecchio formato
+    var legacy = loadLegacy();
+    if(legacy){
+      state.trips = [legacy];
+      state.currentId = legacy.id;
+      save();
+      return;
+    }
+    return;
+  }
   try{
     var d = JSON.parse(raw);
-    if(d && d.trip) state.trip = Object.assign(state.trip, d.trip);
-    if(d && Array.isArray(d.items)) state.items = d.items;
-    if(d && Array.isArray(d.custom)) state.custom = d.custom;
-    rebuildMap();
+    if(d && Array.isArray(d.trips) && d.trips.length){
+      state.trips = d.trips.map(function(t){
+        return Object.assign(newTrip(''), t, {
+          participants: Array.isArray(t.participants) ? t.participants : [],
+          items: Array.isArray(t.items) ? t.items : [],
+          custom: Array.isArray(t.custom) ? t.custom : [],
+          open: t.open || {}
+        });
+      });
+      state.currentId = state.trips.some(function(t){ return t.id === d.currentId; })
+        ? d.currentId : state.trips[0].id;
+    }
   }catch(e){}
 }
-function save(){ store(false, JSON.stringify({trip:state.trip, items:state.items, custom:state.custom})); }
+function save(){ store(false, JSON.stringify({ version:2, trips: state.trips, currentId: state.currentId })); }
 
+/* ---- formattazione ---- */
 function money(v){
   return (v<0?'-':'') + Math.abs(v).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
-function cur(){ return state.trip.cur || '€'; }
+function cur(){ return currentTrip().cur || '€'; }
 function num(s){
   if(typeof s === 'number') return s;
   var t = String(s||'').replace(/\s/g,'').replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,'');
@@ -564,8 +735,19 @@ function dateLabel(s){
   var p = s.split('-');
   return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0].slice(2) : s;
 }
+function dateShort(s){
+  if(!s) return '';
+  var p = s.split('-');
+  return p.length===3 ? p[2]+'/'+p[1] : s;
+}
 function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];
+  });
+}
 
+/* ---- toast ---- */
 var toastT;
 function toast(msg){
   var t = $('toast');
@@ -574,24 +756,25 @@ function toast(msg){
   toastT = setTimeout(function(){ t.classList.remove('show'); }, 2200);
 }
 
-/* ---------- totali ---------- */
+/* ============================================================
+   CALCOLI
+   ============================================================ */
 function totals(){
+  var t = currentTrip();
   var out = 0, inc = 0;
-  state.items.forEach(function(it){
+  t.items.forEach(function(it){
     if(it.kind === 'in') inc += it.amount; else out += it.amount;
   });
   return {out:out, inc:inc, net:out-inc};
 }
 function byCat(kind){
-  var g = {};
-  state.items.forEach(function(it){
+  var t = currentTrip(), g = {};
+  t.items.forEach(function(it){
     if((it.kind==='in') !== (kind==='in')) return;
     (g[it.cat] = g[it.cat] || []).push(it);
   });
   return g;
 }
-
-/* ---------- disegno ---------- */
 function daysBetween(a,b){
   if(!a || !b) return 0;
   var d1 = new Date(a+'T00:00:00'), d2 = new Date(b+'T00:00:00');
@@ -599,50 +782,121 @@ function daysBetween(a,b){
   var n = Math.round((d2-d1)/86400000) + 1;
   return n > 0 ? n : 0;
 }
+function daysList(from,to){
+  var out = [];
+  if(!from || !to) return out;
+  var d1 = new Date(from+'T00:00:00'), d2 = new Date(to+'T00:00:00');
+  if(isNaN(d1) || isNaN(d2) || d2<d1) return out;
+  var cap = 366;
+  for(var d = new Date(d1); d <= d2 && cap>0; d.setDate(d.getDate()+1), cap--){
+    var p = function(x){ return (x<10?'0':'')+x; };
+    out.push(d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()));
+  }
+  return out;
+}
+function participantAvatar(name, idx){
+  var initial = (name||'?').trim().charAt(0).toUpperCase() || '?';
+  var color = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+  return {initial:initial, color:color};
+}
+function computeSplit(){
+  var t = currentTrip();
+  var participants = t.participants || [];
+  if(!participants.length) return null;
+  var out = totals().out;
+  if(out <= 0) return null;
+  var share = out / participants.length;
+  var paid = {};
+  participants.forEach(function(n){ paid[n] = 0; });
+  t.items.forEach(function(it){
+    if(it.kind !== 'out') return;
+    if(it.payer && paid.hasOwnProperty(it.payer)) paid[it.payer] += it.amount;
+  });
+  var rows = participants.map(function(n){
+    return { name: n, paid: paid[n]||0, share: share, balance: (paid[n]||0) - share };
+  });
+  // calcolo trasferimenti minimali (greedy)
+  var creditors = rows.filter(function(r){ return r.balance > 0.005; }).map(function(r){ return {name:r.name, v:r.balance}; });
+  var debtors  = rows.filter(function(r){ return r.balance < -0.005; }).map(function(r){ return {name:r.name, v:-r.balance}; });
+  creditors.sort(function(a,b){ return b.v-a.v; });
+  debtors.sort(function(a,b){ return b.v-a.v; });
+  var transfers = [];
+  var i=0, j=0;
+  while(i<debtors.length && j<creditors.length){
+    var pay = Math.min(debtors[i].v, creditors[j].v);
+    if(pay > 0.01){
+      transfers.push({from:debtors[i].name, to:creditors[j].name, amount:pay});
+    }
+    debtors[i].v -= pay; creditors[j].v -= pay;
+    if(debtors[i].v < 0.01) i++;
+    if(creditors[j].v < 0.01) j++;
+  }
+  return {rows:rows, share:share, transfers:transfers};
+}
 
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderTop(){
+  var t = currentTrip();
+  var sub = $('tripSubtitle');
+  var tot = totals();
+  var stamp = t.items.length;
+  sub.textContent = state.trips.length > 1
+    ? state.trips.length + ' viaggi salvati · saldo attuale ' + cur()+' '+money(tot.net)
+    : 'Ogni spesa al suo posto, il totale sempre aggiornato';
+  $('tripsBadge').textContent = state.trips.length > 1 ? ('Viaggi · '+state.trips.length) : 'Viaggi';
+}
+function renderPeopleRow(){
+  var t = currentTrip();
+  var participants = t.participants || [];
+  var box = $('peopleRow');
+  var html = participants.map(function(p, i){
+    var av = participantAvatar(p, i);
+    return '<span class="person-chip"><span style="background:'+av.color+';width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600">'+av.initial+'</span>'+esc(p)+'<button data-delperson="'+esc(p)+'" aria-label="Rimuovi">×</button></span>';
+  }).join('');
+  html += '<button class="person-chip add" id="addPerson">+ persona</button>';
+  box.innerHTML = html;
+}
 function renderHero(){
   var t = totals();
+  var trip = currentTrip();
 
-  $('dFrom').textContent = dateLabel(state.trip.from) || '—';
-  $('dTo').textContent = dateLabel(state.trip.to) || '—';
-  var gg = daysBetween(state.trip.from, state.trip.to);
+  $('dFrom').textContent = dateLabel(trip.from) || '—';
+  $('dTo').textContent = dateLabel(trip.to) || '—';
+  var gg = daysBetween(trip.from, trip.to);
   $('days').textContent = gg ? (gg===1 ? '1 giorno' : gg+' giorni') : '';
-  $('stampN').textContent = state.items.length;
+  $('stampN').textContent = trip.items.length;
 
   $('netTot').textContent = cur()+' '+money(t.net);
   $('netTot').classList.toggle('neg', t.net < 0);
   $('outTot').textContent = cur()+' '+money(t.out);
   $('inTot').textContent = cur()+' '+money(t.inc);
-  var p = Math.max(1, parseInt(state.trip.people,10) || 1);
+  var p = Math.max(1, parseInt(trip.people,10) || 1);
   $('perHead').textContent = cur()+' '+money(t.net/p);
 
-  var b = num(state.trip.budget);
+  var b = num(trip.budget);
   var box = $('budgetBox');
   if(b > 0){
     box.hidden = false;
-    var perc = Math.min(100, (t.net/b)*100);
+    var perc = Math.max(0, Math.min(100, (t.net/b)*100));
     var left = b - t.net;
     $('budgetLab').textContent = left >= 0 ? 'Restano dal budget' : 'Oltre il budget';
     $('budgetLeft').textContent = cur()+' '+money(Math.abs(left));
     var bar = $('budgetBar');
-    bar.style.width = Math.max(0, perc)+'%';
-    bar.className = perc >= 100 ? 'over' : (perc >= 80 ? 'warn' : '');
+    bar.style.width = perc+'%';
+    var rawPerc = (t.net/b)*100;
+    bar.className = rawPerc >= 100 ? 'over' : (rawPerc >= 80 ? 'warn' : '');
     $('flyer').style.left = Math.min(99, Math.max(1, perc))+'%';
   } else {
     box.hidden = true;
   }
 }
-
 function svgChev(){
   return '<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
 }
-function esc(s){
-  return String(s).replace(/[&<>"]/g, function(m){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];
-  });
-}
-
 function renderList(kind){
+  var trip = currentTrip();
   var box = $(kind==='in' ? 'incList' : 'expList');
   var groups = byCat(kind);
   var order = allCats(kind);
@@ -656,20 +910,21 @@ function renderList(kind){
     n += rows.length;
     var sum = rows.reduce(function(a,b){ return a+b.amount; }, 0);
     var share = grand > 0 ? (sum/grand)*100 : 0;
-    var open = state.open[c.id] ? ' open' : '';
+    var open = trip.open[c.id] ? ' open' : '';
 
     html += '<div class="cat'+(kind==='in'?' income':'')+open+'" data-cat="'+c.id+'" style="--c:'+c.c+'">'
       + '<div class="cat-head" data-toggle="'+c.id+'">'
       + '<div class="emo" style="--soft:'+c.s+'">'+c.e+'</div>'
-      + '<div class="cat-name"><b>'+c.n+'</b><span>'+rows.length+(rows.length===1?' voce':' voci')
+      + '<div class="cat-name"><b>'+esc(c.n)+'</b><span>'+rows.length+(rows.length===1?' voce':' voci')
       + (share>0 ? ' · '+share.toFixed(0)+'%' : '')+'</span></div>'
       + '<div class="cat-tot">'+cur()+' '+money(sum)+'</div>'+svgChev()+'</div>'
       + '<div class="share"><i style="width:'+share.toFixed(1)+'%"></i></div>'
       + '<div class="rows">';
 
     rows.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).forEach(function(it){
+      var payerLbl = it.payer ? ' · <span class="payer">💳 '+esc(it.payer)+'</span>' : '';
       html += '<div class="row">'
-        + '<div class="txt"><b>'+esc(it.desc || c.n)+'</b><span>'+dateLabel(it.date)+'</span></div>'
+        + '<div class="txt"><b>'+esc(it.desc || c.n)+'</b><span>'+dateLabel(it.date)+payerLbl+'</span></div>'
         + '<div class="amt">'+cur()+' '+money(it.amount)+'</div>'
         + '<button class="icon-btn" data-edit="'+it.id+'" aria-label="Modifica"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg></button>'
         + '<button class="icon-btn del" data-del="'+it.id+'" aria-label="Elimina"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>'
@@ -681,12 +936,11 @@ function renderList(kind){
   if(!html){
     html = kind==='in'
       ? '<div class="empty"><i class="pc">💌</i><b>Nessun rientro</b>Rimborsi, quote degli amici o soldi recuperati: si sottraggono dal totale.</div>'
-      : '<div class="empty"><i class="pc">🌍</i><b>Ancora nessuna spesa</b>Tocca “Nuova spesa” e scegli la voce: puoi aggiungerne quante vuoi per ogni categoria.</div>';
+      : '<div class="empty"><i class="pc">🌍</i><b>Ancora nessuna spesa</b>Tocca "Nuova spesa" e scegli la voce: puoi aggiungerne quante vuoi per ogni categoria.</div>';
   }
   box.innerHTML = html;
   $(kind==='in' ? 'incCount' : 'expCount').textContent = n ? n+(n===1?' voce':' voci') : '';
 }
-
 function renderChart(){
   var t = totals(), g = byCat('out'), rows = [];
   allCats('out').forEach(function(c){
@@ -698,7 +952,7 @@ function renderChart(){
   var sec = $('chartSec'), card = $('chartCard');
   if(!rows.length || t.out <= 0){ sec.hidden = true; card.innerHTML = ''; return; }
   sec.hidden = false;
-  $('chartSub').textContent = rows.length + (rows.length===1 ? ' voce' : ' voci');
+  $('chartSub').textContent = rows.length + (rows.length===1 ? ' categoria' : ' categorie');
 
   var R = 46, C = 2 * Math.PI * R, off = 0, arcs = '';
   rows.forEach(function(r){
@@ -718,11 +972,11 @@ function renderChart(){
   if(rest.length){
     var rv = rest.reduce(function(a,b){ return a+b.v; },0);
     leg += '<div class="leg"><i class="dot" style="background:#93a7b8"></i>'
-      + '<span class="nm">altre '+rest.length+' voci</span>'
+      + '<span class="nm">altre '+rest.length+(rest.length===1?' categoria':' categorie')+'</span>'
       + '<span class="pc2">'+((rv/t.out)*100).toFixed(0)+'%</span></div>';
   }
 
-  var gg = daysBetween(state.trip.from, state.trip.to);
+  var gg = daysBetween(currentTrip().from, currentTrip().to);
   var foot = '<div><span>Voce più cara</span><b>'+rows[0].c.e+' '+cur()+' '+money(rows[0].v)+'</b></div>';
   if(gg) foot += '<div><span>Media al giorno</span><b>'+cur()+' '+money(t.out/gg)+'</b></div>';
 
@@ -733,15 +987,117 @@ function renderChart(){
     + '<div class="legend">'+leg+'</div></div>'
     + '<div class="chart-foot">'+foot+'</div></div>';
 }
+function renderTrend(){
+  var trip = currentTrip(), sec = $('trendSec'), card = $('trendCard');
+  var t = totals();
+  if(t.out <= 0){ sec.hidden = true; card.innerHTML = ''; return; }
 
+  // costruisco lista di giorni: da from a to, altrimenti dai giorni presenti nei dati
+  var days = daysList(trip.from, trip.to);
+  if(!days.length){
+    var set = {};
+    trip.items.forEach(function(it){ if(it.kind==='out' && it.date) set[it.date] = true; });
+    days = Object.keys(set).sort();
+  }
+  if(!days.length){ sec.hidden = true; card.innerHTML = ''; return; }
+
+  // se troppi giorni, riduco a max 30
+  if(days.length > 30){
+    var step = Math.ceil(days.length/30);
+    var reduced = [];
+    for(var i=0;i<days.length;i+=step) reduced.push(days[i]);
+    if(reduced[reduced.length-1] !== days[days.length-1]) reduced.push(days[days.length-1]);
+    days = reduced;
+  }
+
+  var sums = {};
+  days.forEach(function(d){ sums[d] = 0; });
+  trip.items.forEach(function(it){
+    if(it.kind !== 'out' || !it.date) return;
+    if(sums.hasOwnProperty(it.date)) sums[it.date] += it.amount;
+    else {
+      // se non è nella lista ridotta, aggrego al più vicino precedente
+      for(var i = days.length-1; i>=0; i--){
+        if(days[i] <= it.date){ sums[days[i]] += it.amount; break; }
+      }
+    }
+  });
+  var vals = days.map(function(d){ return sums[d]; });
+  var max = Math.max.apply(null, vals);
+  if(max <= 0){ sec.hidden = true; card.innerHTML = ''; return; }
+
+  sec.hidden = false;
+  $('trendSub').textContent = days.length + (days.length===1 ? ' giorno' : ' giorni');
+
+  var td = today();
+  var showLabels = days.length <= 10;
+  var bars = days.map(function(d, i){
+    var v = sums[d];
+    var h = max > 0 ? Math.max(2, (v/max)*100) : 2;
+    var cls = 'tbar' + (v <= 0 ? ' zero' : '') + (d === td ? ' today' : '');
+    var lbl = showLabels ? '<span class="tlbl">'+dateShort(d)+'</span>' : '';
+    var title = dateLabel(d)+' — '+cur()+' '+money(v);
+    return '<div class="'+cls+'" style="height:'+h+'%" title="'+title+'">'+lbl+'</div>';
+  }).join('');
+
+  var totOut = vals.reduce(function(a,b){ return a+b; }, 0);
+  var avg = totOut / days.length;
+  var maxDay = days[vals.indexOf(max)];
+
+  var html = '<div class="trend"><h3>Trend giornaliero</h3>'
+    + '<div class="tsub">Quanto hai speso ogni giorno del viaggio</div>'
+    + '<div class="tbars">'+bars+'</div>'
+    + '<div class="tstat"><span>Media al giorno<b>'+cur()+' '+money(avg)+'</b></span>'
+    + '<span>Giorno top<b>'+dateShort(maxDay)+' · '+cur()+' '+money(max)+'</b></span></div>'
+    + '</div>';
+  card.innerHTML = html;
+}
+function renderSplit(){
+  var sec = $('splitSec'), card = $('splitCard');
+  var s = computeSplit();
+  if(!s){ sec.hidden = true; card.innerHTML = ''; return; }
+  sec.hidden = false;
+  $('splitSub').textContent = s.rows.length + ' persone · quota ' + cur()+' '+money(s.share);
+
+  var rows = s.rows.map(function(r, i){
+    var av = participantAvatar(r.name, i);
+    var bal = r.balance;
+    var lbl = Math.abs(bal) < 0.005 ? 'in pari' : (bal > 0 ? 'deve ricevere' : 'deve dare');
+    var cls = Math.abs(bal) < 0.005 ? '' : (bal > 0 ? 'pos' : 'neg');
+    return '<div class="split-row">'
+      + '<div class="av" style="background:'+av.color+'">'+av.initial+'</div>'
+      + '<div class="who"><b>'+esc(r.name)+'</b><span>ha pagato '+cur()+' '+money(r.paid)+' · quota '+cur()+' '+money(r.share)+'</span></div>'
+      + '<div class="balance '+cls+'"><span class="lbl">'+lbl+'</span>'+cur()+' '+money(Math.abs(bal))+'</div>'
+      + '</div>';
+  }).join('');
+
+  var settle = '';
+  if(s.transfers.length){
+    settle = '<div class="settle"><b>Per pareggiare i conti</b>' + s.transfers.map(function(tr){
+      return '<div><strong>'+esc(tr.from)+'</strong> → <em>'+esc(tr.to)+'</em> · '+cur()+' '+money(tr.amount)+'</div>';
+    }).join('') + '</div>';
+  } else {
+    settle = '<div class="settle"><b>Tutti in pari 🎉</b><div>Nessun trasferimento necessario.</div></div>';
+  }
+
+  card.innerHTML = '<div class="split-list"><h3>Chi paga cosa</h3><div class="ssub">Confronto tra quello che ognuno ha pagato e la sua quota</div>'
+    + rows + settle + '</div>';
+}
 function render(){
+  rebuildMap();
+  renderTop();
+  renderPeopleRow();
   renderHero();
   renderList('out');
   renderList('in');
   renderChart();
+  renderTrend();
+  renderSplit();
 }
 
-/* ---------- pannello ---------- */
+/* ============================================================
+   PANNELLO NUOVA SPESA / RIENTRO
+   ============================================================ */
 var mode = 'out', editId = null, pickSel = null;
 
 function openSheet(kind, item){
@@ -756,11 +1112,11 @@ function openSheet(kind, item){
   $('errAmount').classList.remove('show');
   $('newCat').hidden = true;
   buildPicker();
+  buildPayerSelect(item ? item.payer : '');
   $('sheetBg').classList.add('show');
   setTimeout(function(){ if(!item) $('fAmount').focus(); }, 120);
 }
 function closeSheet(){ $('sheetBg').classList.remove('show'); }
-
 function buildPicker(){
   var html = allCats(mode).map(function(c){
     return '<button class="pick'+(pickSel===c.id?' on':'')+'" data-pick="'+c.id+'">'
@@ -771,7 +1127,21 @@ function buildPicker(){
   }
   $('picker').innerHTML = html;
 }
-
+function buildPayerSelect(current){
+  var trip = currentTrip();
+  var wrap = $('fPayerWrap');
+  if(mode === 'in' || !trip.participants || !trip.participants.length){
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  var sel = $('fPayer');
+  var opts = '<option value="">— Nessuno —</option>';
+  trip.participants.forEach(function(p){
+    opts += '<option value="'+esc(p)+'"'+(current === p ? ' selected' : '')+'>'+esc(p)+'</option>';
+  });
+  sel.innerHTML = opts;
+}
 function newCatForm(){
   var box = $('newCat');
   box.hidden = false;
@@ -786,50 +1156,130 @@ function newCatForm(){
     + '<button class="btn" data-ncsave="1">Crea la voce</button></div>';
   $('ncName').focus();
 }
-
 function saveNewCat(){
+  var trip = currentTrip();
   var name = ($('ncName').value || '').trim();
   if(!name){ $('ncName').focus(); toast('Dai un nome alla voce'); return; }
   var emo = document.querySelector('#newCat .em.on');
-  var pal = PALETTE[(state.custom.length) % PALETTE.length];
+  var pal = PALETTE[(trip.custom.length) % PALETTE.length];
   var cat = {id:'c'+Date.now().toString(36), n:name, e:emo ? emo.textContent : '⭐', c:pal.c, s:pal.s, mia:true};
-  state.custom.push(cat);
+  trip.custom.push(cat);
   rebuildMap(); save();
   pickSel = cat.id;
   $('newCat').hidden = true;
   buildPicker();
-  toast('Voce “'+name+'” creata');
+  toast('Voce "'+name+'" creata');
 }
-
 function saveEntry(){
   var a = num($('fAmount').value);
   if(!(a > 0)){ $('errAmount').classList.add('show'); $('fAmount').focus(); return; }
   if(!pickSel){ toast('Scegli prima una voce'); return; }
+  var trip = currentTrip();
   var d = $('fDate').value || today();
   var desc = $('fDesc').value.trim();
+  var payer = $('fPayerWrap').hidden ? '' : ($('fPayer').value || '');
 
   if(editId){
-    state.items.forEach(function(it){
-      if(it.id === editId){ it.cat = pickSel; it.amount = a; it.desc = desc; it.date = d; }
+    trip.items.forEach(function(it){
+      if(it.id === editId){
+        it.cat = pickSel; it.amount = a; it.desc = desc; it.date = d;
+        if(it.kind === 'out') it.payer = payer;
+      }
     });
   } else {
-    state.items.push({
-      id: 'i'+Date.now()+Math.random().toString(36).slice(2,6),
-      kind: mode, cat: pickSel, amount: a, desc: desc, date: d
-    });
-    state.open[pickSel] = true;
+    var it = { id: 'i'+Date.now()+Math.random().toString(36).slice(2,6),
+      kind: mode, cat: pickSel, amount: a, desc: desc, date: d };
+    if(mode === 'out' && payer) it.payer = payer;
+    trip.items.push(it);
+    trip.open[pickSel] = true;
   }
   save(); render(); closeSheet();
   toast(editId ? 'Voce aggiornata' : 'Voce aggiunta');
 }
 
-/* ---------- strumenti ---------- */
+/* ============================================================
+   PANNELLO LISTA VIAGGI
+   ============================================================ */
+function openTripsSheet(){
+  renderTripsList();
+  $('tripsSheetBg').classList.add('show');
+}
+function closeTripsSheet(){ $('tripsSheetBg').classList.remove('show'); }
+function renderTripsList(){
+  var box = $('tripList');
+  var html = state.trips.map(function(t){
+    var out = 0, inc = 0;
+    (t.items || []).forEach(function(it){ if(it.kind==='in') inc += it.amount; else out += it.amount; });
+    var net = out - inc;
+    var active = t.id === state.currentId ? ' active' : '';
+    var when = t.from ? dateLabel(t.from) + (t.to ? ' → '+dateLabel(t.to) : '') : (t.items.length ? t.items.length+' voci' : 'vuoto');
+    return '<div class="tripcard'+active+'" data-selecttrip="'+t.id+'">'
+      + '<div class="ti">🧳</div>'
+      + '<div class="td"><b>'+esc(t.name || 'Senza nome')+'</b><span>'+when+'</span></div>'
+      + '<div class="ta">'+(t.cur||'€')+' '+money(net)+'<em>'+t.items.length+(t.items.length===1?' voce':' voci')+'</em></div>'
+      + '<button class="menu" data-triptools="'+t.id+'" aria-label="Menu">⋯</button>'
+      + '</div>';
+  }).join('');
+  box.innerHTML = html || '<div class="empty" style="background:#f3f6fa;color:var(--muted);border-color:var(--line)"><b>Nessun viaggio</b>Tocca "Nuovo viaggio" per iniziare.</div>';
+}
+function createTrip(){
+  var name = prompt('Nome del nuovo viaggio', '');
+  if(name === null) return;
+  var t = newTrip(name.trim());
+  // eredito valuta e partecipanti dal viaggio corrente per praticità
+  var cur = currentTrip();
+  if(cur){
+    t.cur = cur.cur;
+    t.participants = (cur.participants || []).slice();
+  }
+  state.trips.push(t);
+  state.currentId = t.id;
+  save(); fillTrip(); render(); renderTripsList();
+  toast('Viaggio "'+(name||'senza nome')+'" creato');
+}
+function selectTrip(id){
+  if(id === state.currentId) return closeTripsSheet();
+  state.currentId = id;
+  save(); fillTrip(); render(); closeTripsSheet();
+  toast('Viaggio caricato');
+}
+function tripTools(id){
+  var t = state.trips.filter(function(x){ return x.id === id; })[0];
+  if(!t) return;
+  var choice = prompt(
+    'Cosa fare con "'+(t.name||'senza nome')+'"?\n\n1 = rinomina\n2 = duplica\n3 = elimina\n(annulla per chiudere)',
+    ''
+  );
+  if(choice === null || choice === '') return;
+  if(choice === '1'){
+    var nn = prompt('Nuovo nome', t.name || '');
+    if(nn !== null){ t.name = nn.trim(); save(); render(); renderTripsList(); toast('Rinominato'); }
+  } else if(choice === '2'){
+    var copy = JSON.parse(JSON.stringify(t));
+    copy.id = 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    copy.name = (t.name || 'Senza nome') + ' (copia)';
+    // resetto items? no, duplico tutto compresi
+    state.trips.push(copy);
+    save(); renderTripsList(); toast('Viaggio duplicato');
+  } else if(choice === '3'){
+    if(!confirm('Eliminare definitivamente "'+(t.name||'senza nome')+'"?')) return;
+    state.trips = state.trips.filter(function(x){ return x.id !== id; });
+    if(!state.trips.length){ state.trips = [newTrip('')]; }
+    if(state.currentId === id) state.currentId = state.trips[0].id;
+    save(); fillTrip(); render(); renderTripsList(); toast('Viaggio eliminato');
+  }
+}
+
+/* ============================================================
+   STRUMENTI: riepilogo, csv, stampa, backup
+   ============================================================ */
 function summary(){
+  var trip = currentTrip();
   var t = totals(), lines = [];
-  lines.push('🧳 '+(state.trip.name || 'Conti di viaggio'));
-  if(state.trip.from || state.trip.to){
-    var gg = daysBetween(state.trip.from, state.trip.to);
-    lines.push('🛫 '+(dateLabel(state.trip.from)||'—')+'  →  '+(dateLabel(state.trip.to)||'—')
+  lines.push('🧳 '+(trip.name || 'Conti di viaggio'));
+  if(trip.from || trip.to){
+    var gg = daysBetween(trip.from, trip.to);
+    lines.push('🛫 '+(dateLabel(trip.from)||'—')+'  →  '+(dateLabel(trip.to)||'—')
       + (gg ? '  ('+gg+(gg===1?' giorno)':' giorni)') : ''));
   }
   lines.push('');
@@ -842,7 +1292,8 @@ function summary(){
       var sum = rows.reduce(function(a,b){ return a+b.amount; },0);
       lines.push(c.e+' '+c.n+': '+cur()+' '+money(sum));
       rows.forEach(function(it){
-        lines.push('   · '+(it.desc || dateLabel(it.date))+'  '+cur()+' '+money(it.amount));
+        var pyr = it.payer ? '  (pagato da '+it.payer+')' : '';
+        lines.push('   · '+(it.desc || dateLabel(it.date))+'  '+cur()+' '+money(it.amount)+pyr);
       });
     });
     if(any) lines.push('');
@@ -850,28 +1301,82 @@ function summary(){
   lines.push('Totale spese: '+cur()+' '+money(t.out));
   lines.push('Totale rientri: '+cur()+' '+money(t.inc));
   lines.push('SALDO: '+cur()+' '+money(t.net));
-  var p = Math.max(1, parseInt(state.trip.people,10)||1);
+  var p = Math.max(1, parseInt(trip.people,10)||1);
   if(p > 1) lines.push('A testa ('+p+'): '+cur()+' '+money(t.net/p));
+
+  var s = computeSplit();
+  if(s){
+    lines.push('');
+    lines.push('— CHI PAGA COSA —');
+    lines.push('Quota a testa: '+cur()+' '+money(s.share));
+    s.rows.forEach(function(r){
+      var lbl = Math.abs(r.balance) < 0.005 ? 'in pari' : (r.balance>0 ? 'deve ricevere' : 'deve dare');
+      lines.push('· '+r.name+': ha pagato '+cur()+' '+money(r.paid)+' → '+lbl+' '+cur()+' '+money(Math.abs(r.balance)));
+    });
+    if(s.transfers.length){
+      lines.push('Per pareggiare:');
+      s.transfers.forEach(function(tr){
+        lines.push('   '+tr.from+' → '+tr.to+': '+cur()+' '+money(tr.amount));
+      });
+    }
+  }
   return lines.join('\n');
 }
-
-function download(){
-  var data = JSON.stringify({trip:state.trip, items:state.items}, null, 2);
-  var blob = new Blob([data], {type:'application/json'});
+function csvEscape(v){
+  var s = String(v == null ? '' : v);
+  if(/[",\n;]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function downloadCsv(){
+  var trip = currentTrip();
+  if(!trip.items.length){ toast('Prima aggiungi qualche voce'); return; }
+  var header = ['Data','Tipo','Categoria','Descrizione','Importo','Valuta','PagatoDa'];
+  var lines = [header.join(',')];
+  trip.items.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(it){
+    var c = catMap[it.cat];
+    var row = [
+      it.date || '',
+      it.kind === 'in' ? 'Rientro' : 'Spesa',
+      c ? c.n : it.cat,
+      it.desc || '',
+      String(it.amount).replace('.', ','),
+      cur(),
+      it.payer || ''
+    ].map(csvEscape).join(',');
+    lines.push(row);
+  });
+  var csv = '\ufeff' + lines.join('\n'); // BOM per Excel
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = (state.trip.name ? state.trip.name.replace(/[^\w\-]+/g,'-').toLowerCase() : 'viaggio')+'.json';
+  a.download = (trip.name ? trip.name.replace(/[^\w\-]+/g,'-').toLowerCase() : 'viaggio')+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  toast('CSV salvato');
+}
+function download(){
+  // salva TUTTI i viaggi. Fix: prima non salvava le custom
+  var data = JSON.stringify({ version:2, trips: state.trips, currentId: state.currentId }, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var trip = currentTrip();
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'conti-viaggio-' + (trip.name ? trip.name.replace(/[^\w\-]+/g,'-').toLowerCase() : 'backup')+'.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
 }
 
-/* ---------- eventi ---------- */
+/* ============================================================
+   EVENTI
+   ============================================================ */
 document.addEventListener('click', function(ev){
   var el;
   if((el = ev.target.closest('[data-toggle]'))){
     var id = el.getAttribute('data-toggle');
-    state.open[id] = !state.open[id];
+    var trip = currentTrip();
+    trip.open[id] = !trip.open[id];
     el.parentNode.classList.toggle('open');
+    save();
     return;
   }
   if((el = ev.target.closest('[data-newcat]'))){ newCatForm(); return; }
@@ -891,15 +1396,53 @@ document.addEventListener('click', function(ev){
   if((el = ev.target.closest('[data-del]'))){
     var did = el.getAttribute('data-del');
     if(confirm('Elimino questa voce?')){
-      state.items = state.items.filter(function(it){ return it.id !== did; });
+      var trip = currentTrip();
+      trip.items = trip.items.filter(function(it){ return it.id !== did; });
       save(); render(); toast('Voce eliminata');
     }
     return;
   }
   if((el = ev.target.closest('[data-edit]'))){
     var eid = el.getAttribute('data-edit');
-    var item = state.items.filter(function(it){ return it.id === eid; })[0];
+    var trip2 = currentTrip();
+    var item = trip2.items.filter(function(it){ return it.id === eid; })[0];
     if(item) openSheet(item.kind, item);
+    return;
+  }
+  if((el = ev.target.closest('[data-selecttrip]'))){
+    if(ev.target.closest('[data-triptools]')) return;
+    selectTrip(el.getAttribute('data-selecttrip'));
+    return;
+  }
+  if((el = ev.target.closest('[data-triptools]'))){
+    ev.stopPropagation();
+    tripTools(el.getAttribute('data-triptools'));
+    return;
+  }
+  if((el = ev.target.closest('[data-delperson]'))){
+    var trip3 = currentTrip();
+    var pn = el.getAttribute('data-delperson');
+    trip3.participants = (trip3.participants || []).filter(function(p){ return p !== pn; });
+    // rimuovo il payer nelle voci
+    trip3.items.forEach(function(it){ if(it.payer === pn) delete it.payer; });
+    save(); renderPeopleRow(); render();
+    return;
+  }
+  if(ev.target.closest('#addPerson')){
+    var name = prompt('Nome partecipante', '');
+    if(name === null) return;
+    name = name.trim();
+    if(!name) return;
+    var trip4 = currentTrip();
+    trip4.participants = trip4.participants || [];
+    if(trip4.participants.indexOf(name) !== -1){ toast('Nome già presente'); return; }
+    if(trip4.participants.length >= 12){ toast('Massimo 12 persone'); return; }
+    trip4.participants.push(name);
+    if(trip4.participants.length > (parseInt(trip4.people,10)||1)){
+      trip4.people = trip4.participants.length;
+      $('people').value = trip4.people;
+    }
+    save(); renderPeopleRow(); render();
     return;
   }
 });
@@ -912,25 +1455,33 @@ $('sheetBg').addEventListener('click', function(e){ if(e.target === this) closeS
 $('fAmount').addEventListener('input', function(){ $('errAmount').classList.remove('show'); });
 $('fAmount').addEventListener('keydown', function(e){ if(e.key === 'Enter') saveEntry(); });
 
+$('btnTrips').addEventListener('click', openTripsSheet);
+$('tripsClose').addEventListener('click', closeTripsSheet);
+$('btnNewTrip').addEventListener('click', createTrip);
+$('tripsSheetBg').addEventListener('click', function(e){ if(e.target === this) closeTripsSheet(); });
+
 ['tripName','cur','people','budget','dateFrom','dateTo'].forEach(function(id){
   $(id).addEventListener('input', function(){
-    state.trip.name = $('tripName').value;
-    state.trip.cur = $('cur').value;
-    state.trip.people = $('people').value;
-    state.trip.budget = $('budget').value;
-    state.trip.from = $('dateFrom').value;
-    state.trip.to = $('dateTo').value;
+    var trip = currentTrip();
+    trip.name = $('tripName').value;
+    trip.cur = $('cur').value;
+    trip.people = parseInt($('people').value,10) || 1;
+    trip.budget = $('budget').value;
+    trip.from = $('dateFrom').value;
+    trip.to = $('dateTo').value;
     save(); render();
   });
 });
 
+/* ---- stampa/PDF ---- */
 function buildReport(){
-  var t = totals(), gg = daysBetween(state.trip.from, state.trip.to);
-  var p = Math.max(1, parseInt(state.trip.people,10) || 1);
-  var h = '<h1>' + esc(state.trip.name || 'Conti di viaggio') + '</h1><div class="meta">';
+  var trip = currentTrip();
+  var t = totals(), gg = daysBetween(trip.from, trip.to);
+  var p = Math.max(1, parseInt(trip.people,10) || 1);
+  var h = '<h1>' + esc(trip.name || 'Conti di viaggio') + '</h1><div class="meta">';
   var meta = [];
-  if(state.trip.from || state.trip.to){
-    meta.push('Dal ' + (dateLabel(state.trip.from) || '—') + ' al ' + (dateLabel(state.trip.to) || '—')
+  if(trip.from || trip.to){
+    meta.push('Dal ' + (dateLabel(trip.from) || '—') + ' al ' + (dateLabel(trip.to) || '—')
       + (gg ? ' · ' + gg + (gg===1 ? ' giorno' : ' giorni') : ''));
   }
   if(p > 1) meta.push(p + ' persone');
@@ -945,7 +1496,8 @@ function buildReport(){
       var sum = rows.reduce(function(a,b){ return a+b.amount; },0);
       any += '<tr class="cat"><td>' + c.e + ' ' + esc(c.n) + '</td><td class="a"></td></tr>';
       rows.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(it){
-        any += '<tr><td>' + esc(it.desc || c.n) + ' <span class="d">' + dateLabel(it.date) + '</span></td>'
+        var pyr = it.payer ? ' · pagato da ' + esc(it.payer) : '';
+        any += '<tr><td>' + esc(it.desc || c.n) + ' <span class="d">' + dateLabel(it.date) + pyr + '</span></td>'
           + '<td class="a">' + cur() + ' ' + money(it.amount) + '</td></tr>';
       });
       any += '<tr class="sub"><td>Totale ' + esc(c.n.toLowerCase()) + '</td>'
@@ -960,17 +1512,35 @@ function buildReport(){
     + '<div class="big"><span>Saldo del viaggio</span><b>' + cur() + ' ' + money(t.net) + '</b></div>';
   if(p > 1) h += '<div><span>Quota a testa</span><b>' + cur() + ' ' + money(t.net/p) + '</b></div>';
   if(gg) h += '<div><span>Media al giorno</span><b>' + cur() + ' ' + money(t.out/gg) + '</b></div>';
-  h += '</div><div class="note">' + state.items.length + ' voci registrate · Conti di viaggio</div>';
+  h += '</div>';
 
+  var s = computeSplit();
+  if(s){
+    h += '<h2>Chi paga cosa</h2><table>';
+    s.rows.forEach(function(r){
+      var lbl = Math.abs(r.balance) < 0.005 ? 'in pari' : (r.balance>0 ? 'deve ricevere' : 'deve dare');
+      h += '<tr><td>'+esc(r.name)+' <span class="d">ha pagato '+cur()+' '+money(r.paid)+'</span></td>'
+        + '<td class="a">'+lbl+' '+cur()+' '+money(Math.abs(r.balance))+'</td></tr>';
+    });
+    h += '</table>';
+    if(s.transfers.length){
+      h += '<h2>Per pareggiare i conti</h2><table>';
+      s.transfers.forEach(function(tr){
+        h += '<tr><td>'+esc(tr.from)+' → '+esc(tr.to)+'</td><td class="a">'+cur()+' '+money(tr.amount)+'</td></tr>';
+      });
+      h += '</table>';
+    }
+  }
+
+  h += '<div class="note">' + trip.items.length + ' voci registrate · Conti di viaggio</div>';
   $('report').innerHTML = h;
 }
-
 $('btnPrint').addEventListener('click', function(){
-  if(!state.items.length){ toast('Prima aggiungi qualche voce'); return; }
+  var trip = currentTrip();
+  if(!trip.items.length){ toast('Prima aggiungi qualche voce'); return; }
   buildReport();
   setTimeout(function(){ window.print(); }, 60);
 });
-
 $('btnCopy').addEventListener('click', function(){
   var txt = summary();
   if(navigator.clipboard && navigator.clipboard.writeText){
@@ -978,7 +1548,8 @@ $('btnCopy').addEventListener('click', function(){
       function(){ alert(txt); });
   } else { alert(txt); }
 });
-$('btnExport').addEventListener('click', function(){ download(); toast('File salvato'); });
+$('btnCsv').addEventListener('click', downloadCsv);
+$('btnExport').addEventListener('click', function(){ download(); toast('Backup salvato'); });
 $('btnImport').addEventListener('click', function(){ $('fileIn').click(); });
 $('fileIn').addEventListener('change', function(e){
   var f = e.target.files[0];
@@ -987,34 +1558,66 @@ $('fileIn').addEventListener('change', function(e){
   r.onload = function(){
     try{
       var d = JSON.parse(r.result);
-      if(d && Array.isArray(d.items)){
-        state.items = d.items;
-        if(d.trip) state.trip = Object.assign(state.trip, d.trip);
-        state.custom = Array.isArray(d.custom) ? d.custom : [];
-        rebuildMap(); fillTrip(); save(); render(); toast('Viaggio caricato');
-      } else { toast('File non valido'); }
+      if(d && Array.isArray(d.trips) && d.trips.length){
+        // formato v2: import completo (sostituisce tutto)
+        if(confirm('Importare '+d.trips.length+' viaggio/i?\nATTENZIONE: sostituirà i viaggi attuali.')){
+          state.trips = d.trips.map(function(t){
+            return Object.assign(newTrip(''), t, {
+              participants: Array.isArray(t.participants) ? t.participants : [],
+              items: Array.isArray(t.items) ? t.items : [],
+              custom: Array.isArray(t.custom) ? t.custom : [],
+              open: t.open || {}
+            });
+          });
+          state.currentId = state.trips.some(function(t){ return t.id === d.currentId; })
+            ? d.currentId : state.trips[0].id;
+          save(); fillTrip(); render(); toast('Backup ripristinato');
+        }
+      } else if(d && Array.isArray(d.items)){
+        // legacy v1: importo come nuovo viaggio
+        var t2 = newTrip((d.trip && d.trip.name) || 'Viaggio importato');
+        if(d.trip){
+          t2.cur = d.trip.cur || '€';
+          t2.people = parseInt(d.trip.people,10) || 1;
+          t2.budget = d.trip.budget || '';
+          t2.from = d.trip.from || '';
+          t2.to = d.trip.to || '';
+        }
+        t2.items = d.items;
+        t2.custom = Array.isArray(d.custom) ? d.custom : [];
+        state.trips.push(t2);
+        state.currentId = t2.id;
+        save(); fillTrip(); render(); toast('Viaggio importato');
+      } else {
+        toast('File non valido');
+      }
     }catch(err){ toast('File non valido'); }
   };
   r.readAsText(f);
   e.target.value = '';
 });
 $('btnReset').addEventListener('click', function(){
-  if(confirm('Cancello tutte le voci di questo viaggio?')){
-    state.items = []; state.open = {};
+  var trip = currentTrip();
+  if(confirm('Cancello tutte le voci di "'+(trip.name||'questo viaggio')+'"?')){
+    trip.items = []; trip.open = {};
     save(); render(); toast('Viaggio azzerato');
   }
 });
 
+/* ============================================================
+   INIT
+   ============================================================ */
 function fillTrip(){
-  $('tripName').value = state.trip.name || '';
-  $('cur').value = state.trip.cur || '€';
-  $('people').value = state.trip.people || 1;
-  $('budget').value = state.trip.budget || '';
-  $('dateFrom').value = state.trip.from || '';
-  $('dateTo').value = state.trip.to || '';
+  var trip = currentTrip();
+  $('tripName').value = trip.name || '';
+  $('cur').value = trip.cur || '€';
+  $('people').value = trip.people || 1;
+  $('budget').value = trip.budget || '';
+  $('dateFrom').value = trip.from || '';
+  $('dateTo').value = trip.to || '';
 }
 
-rebuildMap(); load(); fillTrip(); render();
+load(); fillTrip(); render();
 
 if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', function(){

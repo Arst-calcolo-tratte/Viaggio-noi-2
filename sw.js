@@ -1,4 +1,4 @@
-var CACHE = 'conti-viaggio-v2';
+var CACHE = 'conti-viaggio-v3';
 var ASSETS = [
   './',
   './index.html',
@@ -26,20 +26,37 @@ self.addEventListener('activate', function(e){
   );
 });
 
+// Network-first per la pagina principale (così gli aggiornamenti arrivano),
+// cache-first per il resto (icone/manifest).
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET') return;
+  var url = new URL(e.request.url);
+  var isHtml = e.request.mode === 'navigate' ||
+    e.request.destination === 'document' ||
+    url.pathname.endsWith('/') ||
+    url.pathname.endsWith('/index.html');
+
+  if(isHtml){
+    e.respondWith(
+      fetch(e.request).then(function(res){
+        var copy = res.clone();
+        caches.open(CACHE).then(function(c){ try{ c.put(e.request, copy); }catch(_){} });
+        return res;
+      }).catch(function(){
+        return caches.match(e.request).then(function(hit){ return hit || caches.match('./index.html'); });
+      })
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(function(hit){
       if(hit) return hit;
       return fetch(e.request).then(function(res){
         var copy = res.clone();
-        caches.open(CACHE).then(function(c){
-          try { c.put(e.request, copy); } catch(err){}
-        });
+        caches.open(CACHE).then(function(c){ try{ c.put(e.request, copy); }catch(_){} });
         return res;
-      }).catch(function(){
-        return caches.match('./index.html');
-      });
+      }).catch(function(){ return caches.match('./index.html'); });
     })
   );
 });
