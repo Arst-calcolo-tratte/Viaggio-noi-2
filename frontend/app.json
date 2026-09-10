@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Conti di viaggio",
+    "slug": "conti-di-viaggio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "contidiviaggio",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0D2237",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.emergent.contidiviaggio",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.emergent.contidiviaggio",
+      "adaptiveIcon": {
+        "backgroundColor": "#0D2237"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
+    },
+    "platforms": ["ios", "android", "web"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

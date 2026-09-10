@@ -1,0 +1,119 @@
+{
+  "app_name": "Viaggio noi 2",
+  "personality": "4 Tactile / Playful LIGHT",
+  "personality_one_liner": "A delightful, tactile travel expense tracker that uses a playful boarding pass metaphor to make budgeting feel like part of the vacation.",
+  "color": {
+    "surface": "#F4F6F9",
+    "onSurface": "#0D2237",
+    "surfaceSecondary": "#FFFFFF",
+    "onSurfaceSecondary": "#0D2237",
+    "surfaceTertiary": "#E2E8F0",
+    "onSurfaceTertiary": "#0D2237",
+    "surfaceInverse": "#0D2237",
+    "onSurfaceInverse": "#FFFFFF",
+    "brand": "#0D2237",
+    "brandPrimary": "#0D2237",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#3B82F6",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "#EBF0F8",
+    "onBrandTertiary": "#0D2237",
+    "success": "#16a34a",
+    "onSuccess": "#FFFFFF",
+    "warning": "#f97316",
+    "onWarning": "#FFFFFF",
+    "error": "#db2777",
+    "onError": "#FFFFFF",
+    "info": "#8b5cf6",
+    "onInfo": "#FFFFFF",
+    "border": "#E2E8F0",
+    "borderStrong": "#CBD5E1",
+    "divider": "#E2E8F0",
+    "muted": "#64748B"
+  },
+  "typography": {
+    "displayFontFamily": "Outfit",
+    "textFontFamily": "Outfit",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Handle spacing correctly dont have extra spaces where its not required, handle padding and margin corectly and subtle for buttons and components",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "2",
+  "navigation": "stack_only",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": "true",
+    "do's": [
+      "Use on the sticky bottom action bar (Nuova spesa/Rientro buttons) to float over the scrollable expense list",
+      "Use on bottom sheet headers/handles"
+    ],
+    "dont's": [
+      "Do not use on the main Boarding Pass card (it should feel like opaque solid paper)",
+      "Do not use on list item cards"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "A single comprehensive dashboard managing the entire trip's expenses via a boarding pass metaphor.",
+      "states": {
+        "loading": "Centered spinner with a bouncing plane icon.",
+        "empty": "Show the yellow luggage illustration with 'Ancora nessuna spesa. Tocca Nuova spesa per iniziare.'",
+        "error": "Error message with a retry button."
+      },
+      "layout": "1. Top Header: Trip name, dates, currency, and total budget. Background uses the airport departure board image with a heavy gradient scrim (transparent to surface). 2. Hero Card (Boarding Pass): White surfaceSecondary card, lg radius. Split into top (Saldo, A testa) and bottom (Uscite, Rientri) by a dashed divider. Use absolute positioned circle cutouts on the left and right of the divider to mimic perforation. Include a budget progress bar with the plane emoji. 3. Scrollable Content: Donut chart (Dove vanno i soldi) using the custom category colors, followed by Expandable Category cards showing category emoji, name, item count, total, and a share bar. 4. Sticky Bottom Action Bar: Wrapped in an expo-blur container pinned to the bottom. Contains 'Nuova spesa' (Primary button, brandPrimary) and 'Rientro' (Secondary button, brandSecondary)."
+    }
+  ],
+  "images": {
+    "header_background": {
+      "url": "https://images.unsplash.com/photo-1503365113766-4a362681eac5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwxfHxhaXJwb3J0JTIwZGVwYXJ0dXJlJTIwYm9hcmQlMjBhYnN0cmFjdCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzg5MDYyMjExfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "abstract airport departure board background"
+    },
+    "empty_state": {
+      "url": "https://images.unsplash.com/photo-1632165061207-81a8a3baee47?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwdHJhdmVsJTIwbHVnZ2FnZSUyMGlsbHVzdHJhdGlvbiUyMGN1dGV8ZW58MHx8fHwxNzg5MDYyMjExfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "yellow piece of luggage sitting on a floor"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Boarding Pass Layout (CRITICAL): Build the hero card as a single `View` with `backgroundColor: surfaceSecondary` and `lg` radius. Create the perforation notch effect using absolute positioned circles (`backgroundColor: surface`) overlapping the left and right edges, connected by a dashed border line. Apply `shadow_tier: 2` to this card.",
+    "Exception to Emoji Rule: The brief EXPLICITLY requests emojis for categories, plane progress, and category picker grid. Proceed with using actual emojis for these specific data points. However, DO NOT use emojis for system UI controls (use Phosphor icons for chevrons, close buttons, and tool actions).",
+    "Data Categories Colors: Implement the explicit category colors from the brief: blue (#3b82f6), purple (#8b5cf6), orange (#f97316), green (#16a34a), pink (#db2777). Use these for the Donut chart (`victory-native` or similar) and the category grid.",
+    "Bottom Sheet: Use `@gorhom/bottom-sheet` for the 'Nuova spesa' and 'Nuovo rientro' modal. Include a grid of 36+5 categories (soft circular chips with emojis inside), an amount input, date, description, and save button.",
+    "Expandable Lists: Use `react-native-reanimated` to animate the expansion of category cards in the 'Spese' list to reveal individual line items.",
+    "Sticky Actions: Wrap the 'Nuova spesa' and 'Rientro' buttons in a fixed `expo-blur` container at the bottom of the screen, outside the main scroll view, ensuring they are always accessible.",
+    "Footer Tools: Include the requested utility actions (Stampa/PDF, Copia riepilogo, Salva backup JSON, Apri backup JSON, Azzera) at the very bottom of the scroll view (under the expenses list).",
+    "Header Scrim: Ensure the `header_background` image is heavily scrimmed (using `expo-linear-gradient` from transparent to `surface` over the top 30-40% of the screen) so the trip title and header text maintain WCAG AAA contrast."
+  ]
+}
