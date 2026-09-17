@@ -1,4 +1,4 @@
-var CACHE = 'conti-viaggio-v3';
+var CACHE = 'conti-viaggio-v4';
 var ASSETS = [
   './',
   './index.html',
@@ -26,8 +26,6 @@ self.addEventListener('activate', function(e){
   );
 });
 
-// Network-first per la pagina principale (così gli aggiornamenti arrivano),
-// cache-first per il resto (icone/manifest).
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET') return;
   var url = new URL(e.request.url);
