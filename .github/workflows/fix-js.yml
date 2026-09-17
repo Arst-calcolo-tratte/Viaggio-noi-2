@@ -68,6 +68,38 @@ jobs:
           p.write_text(s,encoding='utf-8')
           print('Percentage state/editor/defaults fixed')
           PY
+      - name: Diagnose split rendering
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          def fn(name):
+              marker='function '+name+'('
+              a=s.find(marker)
+              if a<0: return 'NOT FOUND'
+              b=s.find('{',a); depth=0; quote=None; esc=False; i=b
+              while i<len(s):
+                  c=s[i]
+                  if quote:
+                      if esc: esc=False
+                      elif c=='\\': esc=True
+                      elif c==quote: quote=None
+                  else:
+                      if c in "'\"`": quote=c
+                      elif c=='{': depth+=1
+                      elif c=='}':
+                          depth-=1
+                          if depth==0: return s[a:i+1]
+                  i+=1
+              return 'UNTERMINATED'
+          for name in ['normalisePercents','computeSplit','renderPercentEditor','render']:
+              print('\n=== '+name+' ===')
+              print(fn(name))
+          print('\n=== split markup references ===')
+          for m in re.finditer(r'.{0,180}(?:splitSec|splitCard|Chi paga cosa|renderPercentEditor).{0,220}',s): print(m.group(0))
+          PY
       - name: Validate JavaScript
         shell: bash
         run: |
