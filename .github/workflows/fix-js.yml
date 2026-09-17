@@ -29,16 +29,38 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
           p=Path('index.html'); s=p.read_text(encoding='utf-8')
+
+          def replace_function(src,name,replacement):
+              marker='function '+name+'('
+              start=src.find(marker)
+              if start<0: raise SystemExit(name+' function not found')
+              brace=src.find('{',start)
+              if brace<0: raise SystemExit(name+' opening brace not found')
+              depth=0; quote=None; esc=False; i=brace
+              while i<len(src):
+                  c=src[i]
+                  if quote:
+                      if esc: esc=False
+                      elif c=='\\': esc=True
+                      elif c==quote: quote=None
+                  else:
+                      if c in "'\"`": quote=c
+                      elif c=='{': depth+=1
+                      elif c=='}':
+                          depth-=1
+                          if depth==0:
+                              return src[:start]+replacement+src[i+1:]
+                  i+=1
+              raise SystemExit(name+' closing brace not found')
+
           new_norm="""function normalisePercents(ps,p){var out={},has=false;ps.forEach(function(n){var raw=(p||{})[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return out}"""
-          s2=re.sub(r'function normalisePercents\(ps,p\)\{.*?\}\s*function computeSplit',new_norm+'function computeSplit',s,count=1,flags=re.S)
-          if s2==s: raise SystemExit('normalisePercents block not found')
-          s=s2
+          s=replace_function(s,'normalisePercents',new_norm)
+
+          old_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),value=Math.max(0,Math.min(100,num(el.value)));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=value;var ps=t.participants||[],sum=ps.reduce(function(a,p){return a+num(t.splitPercents[p])},0);if(sum>0){ps.forEach(function(p){t.splitPercents[p]=num(t.splitPercents[p])*100/sum})}save();render()});"""
           new_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});"""
-          s2=re.sub(r"document\.addEventListener\('change',function\(ev\)\{.*?\}\);\s*\$\('addExp'\)",new_change+"$('addExp')",s,count=1,flags=re.S)
-          if s2==s: raise SystemExit('percentage change listener not found')
-          s=s2
+          if old_change not in s: raise SystemExit('percentage change listener not found')
+          s=s.replace(old_change,new_change,1)
           p.write_text(s,encoding='utf-8')
           print('Exact percentage input installed')
           PY
