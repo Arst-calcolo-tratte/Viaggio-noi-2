@@ -59,8 +59,8 @@ jobs:
 
           old_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),value=Math.max(0,Math.min(100,num(el.value)));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=value;var ps=t.participants||[],sum=ps.reduce(function(a,p){return a+num(t.splitPercents[p])},0);if(sum>0){ps.forEach(function(p){t.splitPercents[p]=num(t.splitPercents[p])*100/sum})}save();render()});"""
           new_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});"""
-          if old_change not in s: raise SystemExit('percentage change listener not found')
-          s=s.replace(old_change,new_change,1)
+          if old_change in s: s=s.replace(old_change,new_change,1)
+          elif "t.splitPercents[name]=v" not in s: raise SystemExit('percentage change listener not found')
 
           old_add="""t4.splitPercents[t4.participants[0]]=61.5;t4.splitPercents[t4.participants[1]]=38.5;"""
           new_add="""t4.splitPercents[t4.participants[0]]=38.5;t4.splitPercents[t4.participants[1]]=61.5;"""
