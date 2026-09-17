@@ -22,11 +22,12 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          old = "String(it.amount).replace('.',','),cur(),it.payer||''].map(function(v){var s=String(v);return/[\\\",\\\\n;]/.test(s)?'\\\"'+s.replace(/\\\"/g,'\\\"\\\"')+'\\\"':s}).join(',')});var blob"
-          new = "String(it.amount).replace('.',','),cur(),it.payer||''].map(function(v){var s=String(v);return/[\\\",\\\\n;]/.test(s)?'\\\"'+s.replace(/\\\"/g,'\\\"\\\"')+'\\\"':s}).join(','));var blob"
-          if old in s:
+          old = "join(',')});var blob"
+          new = "join(','));var blob"
+          count = s.count(old)
+          if count:
               p.write_text(s.replace(old, new), encoding='utf-8')
-              print('Repaired downloadCsv parenthesis')
+              print(f'Repaired {count} downloadCsv parenthesis occurrence(s)')
           else:
               print('No downloadCsv repair needed')
           PY
@@ -49,7 +50,7 @@ jobs:
             node --check "$f"
           done
           echo 'JavaScript syntax: OK'
-      - name: Check critical split code
+      - name: Check critical split code and commit repair
         run: |
           grep -F "t4.splitPercents[t4.participants[0]]=61.5" index.html
           grep -F "t4.splitPercents[t4.participants[1]]=38.5" index.html
