@@ -24,7 +24,7 @@ jobs:
           s2=s.replace("join(',')});var blob", "join(','));});var blob")
           if s2!=s: p.write_text(s2,encoding='utf-8')
           PY
-      - name: Fix percentage editor so values are exact
+      - name: Fix percentage state and editor
         shell: bash
         run: |
           python - <<'PY'
@@ -54,15 +54,19 @@ jobs:
                   i+=1
               raise SystemExit(name+' closing brace not found')
 
-          new_norm="""function normalisePercents(ps,p){var out={},has=false;ps.forEach(function(n){var raw=(p||{})[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return out}"""
+          new_norm="""function normalisePercents(ps,p){var t=currentTrip();ps=ps||t.participants||[];p=p||t.splitPercents||{};var out={},has=false;ps.forEach(function(n){var raw=p[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return{values:out,total:ps.reduce(function(a,n){return a+(out[n]||0)},0)}}"""
           s=replace_function(s,'normalisePercents',new_norm)
 
           old_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),value=Math.max(0,Math.min(100,num(el.value)));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=value;var ps=t.participants||[],sum=ps.reduce(function(a,p){return a+num(t.splitPercents[p])},0);if(sum>0){ps.forEach(function(p){t.splitPercents[p]=num(t.splitPercents[p])*100/sum})}save();render()});"""
           new_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});"""
           if old_change not in s: raise SystemExit('percentage change listener not found')
           s=s.replace(old_change,new_change,1)
+
+          old_add="""t4.splitPercents[t4.participants[0]]=61.5;t4.splitPercents[t4.participants[1]]=38.5;"""
+          new_add="""t4.splitPercents[t4.participants[0]]=38.5;t4.splitPercents[t4.participants[1]]=61.5;"""
+          if old_add in s: s=s.replace(old_add,new_add,1)
           p.write_text(s,encoding='utf-8')
-          print('Exact percentage input installed')
+          print('Percentage state/editor/defaults fixed')
           PY
       - name: Validate JavaScript
         shell: bash
@@ -79,11 +83,13 @@ jobs:
           echo 'JavaScript syntax: OK'
       - name: Verify percentage fix and commit
         run: |
+          grep -F "return{values:out,total:" index.html
           grep -F "t.splitPercents[name]=v" index.html
-          grep -F "replace(',','.')" index.html
+          grep -F "t4.splitPercents[t4.participants[0]]=38.5" index.html
+          grep -F "t4.splitPercents[t4.participants[1]]=61.5" index.html
           if grep -Fq "t.splitPercents[p]=num(t.splitPercents[p])*100/sum" index.html; then exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Fix exact percentage input"
+          git diff --cached --quiet || git commit -m "Fix percentage state and defaults"
           git push
