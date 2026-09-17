@@ -22,12 +22,15 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          old = "join(',')});var blob"
-          new = "join(','));var blob"
-          count = s.count(old)
-          if count:
-              p.write_text(s.replace(old, new), encoding='utf-8')
-              print(f'Repaired {count} downloadCsv parenthesis occurrence(s)')
+          replacements = [("join(',')});var blob", "join(','));});var blob"), ("join(','));var blob", "join(','));});var blob")]
+          changed = False
+          for old, new in replacements:
+              if old in s:
+                  s = s.replace(old, new)
+                  changed = True
+                  print(f'Repaired: {old!r}')
+          if changed:
+              p.write_text(s, encoding='utf-8')
           else:
               print('No downloadCsv repair needed')
           PY
@@ -45,19 +48,13 @@ jobs:
               Path(f'/tmp/script-{i}.js').write_text(script, encoding='utf-8')
           print(f'Found {len(scripts)} JavaScript block(s)')
           PY
-          for f in /tmp/script-*.js; do
-            echo "Checking $f"
-            node --check "$f"
-          done
+          for f in /tmp/script-*.js; do node --check "$f"; done
           echo 'JavaScript syntax: OK'
       - name: Check critical split code and commit repair
         run: |
           grep -F "t4.splitPercents[t4.participants[0]]=61.5" index.html
           grep -F "t4.splitPercents[t4.participants[1]]=38.5" index.html
-          if grep -Fq "t4.splitPercents={[t4.participants[0]]" index.html; then
-            echo 'Old invalid syntax is still present'
-            exit 1
-          fi
+          if grep -Fq "t4.splitPercents={[t4.participants[0]]" index.html; then exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
