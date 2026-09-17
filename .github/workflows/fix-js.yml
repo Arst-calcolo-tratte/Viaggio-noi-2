@@ -15,48 +15,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Repair CSV syntax if needed
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
+          p=Path('index.html'); s=p.read_text(encoding='utf-8')
           s2=s.replace("join(',')});var blob", "join(','));});var blob")
-          if s2!=s:
-              p.write_text(s2,encoding='utf-8')
-              print('CSV syntax repaired')
+          if s2!=s: p.write_text(s2,encoding='utf-8')
           PY
-
       - name: Fix percentage editor so values are exact
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-
-          # Do not renormalize the values every time an input changes.
-          # This was the reason typing 38.5 immediately changed the number.
-          new_norm = '''function normalisePercents(ps,p){var out={},has=false;ps.forEach(function(n){var raw=(p||{})[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return out}'''
-          s2=re.sub(r'function normalisePercents\(ps,p\)\{.*?\}',new_norm,s,count=1,flags=re.S)
-          if s2==s:
-              raise SystemExit('normalisePercents function not found')
+          p=Path('index.html'); s=p.read_text(encoding='utf-8')
+          new_norm="""function normalisePercents(ps,p){var out={},has=false;ps.forEach(function(n){var raw=(p||{})[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return out}"""
+          s2=re.sub(r'function normalisePercents\(ps,p\)\{.*?\}\s*function computeSplit',new_norm+'function computeSplit',s,count=1,flags=re.S)
+          if s2==s: raise SystemExit('normalisePercents block not found')
           s=s2
-
-          # Replace the percentage change listener with one that preserves the exact typed value.
-          new_change = '''document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});'''
+          new_change="""document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});"""
           s2=re.sub(r"document\.addEventListener\('change',function\(ev\)\{.*?\}\);\s*\$\('addExp'\)",new_change+"$('addExp')",s,count=1,flags=re.S)
-          if s2==s:
-              raise SystemExit('percentage change listener not found')
+          if s2==s: raise SystemExit('percentage change listener not found')
           s=s2
-
           p.write_text(s,encoding='utf-8')
           print('Exact percentage input installed')
           PY
-
       - name: Validate JavaScript
         shell: bash
         run: |
@@ -70,16 +55,11 @@ jobs:
           PY
           for f in /tmp/script-*.js; do node --check "$f"; done
           echo 'JavaScript syntax: OK'
-
       - name: Verify percentage fix and commit
         run: |
-          grep -F "Exact percentage input installed" /dev/null || true
           grep -F "t.splitPercents[name]=v" index.html
           grep -F "replace(',','.')" index.html
-          if grep -Fq "t.splitPercents[p]=num(t.splitPercents[p])*100/sum" index.html; then
-            echo 'Old automatic percentage renormalization is still present'
-            exit 1
-          fi
+          if grep -Fq "t.splitPercents[p]=num(t.splitPercents[p])*100/sum" index.html; then exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
