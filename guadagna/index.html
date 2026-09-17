@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Extra 300€ — Piano entrate</title>
+  <meta name="description" content="Strumento per trovare, valutare e monitorare entrate extra mensili.">
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
+    *{box-sizing:border-box}body{margin:0}.wrap{max-width:980px;margin:auto;padding:20px}
+    header{background:#111827;color:white;border-radius:22px;padding:26px;margin-bottom:16px}
+    h1{margin:0 0 8px;font-size:30px}.sub{opacity:.85}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px}
+    .card{background:white;border-radius:18px;padding:18px;box-shadow:0 2px 10px #0000000d}.label{font-size:13px;color:#6b7280}.big{font-size:30px;font-weight:800;margin-top:5px}
+    .bar{height:14px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:12px}.fill{height:100%;background:#111827;width:0%}
+    h2{font-size:20px;margin:4px 0 12px}.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.field{flex:1;min-width:170px}
+    label{display:block;font-size:13px;color:#6b7280;margin-bottom:5px}input,select,button{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;font:inherit;background:white}
+    button{cursor:pointer;background:#111827;color:white;border-color:#111827;font-weight:700}.muted{color:#6b7280;font-size:13px}.result{margin-top:12px;padding:12px;background:#f9fafb;border-radius:12px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}th,td{text-align:left;padding:10px 6px;border-bottom:1px solid #eee;font-size:14px}
+    .ok{font-weight:700}.danger{font-weight:700}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;font-size:12px}
+    @media(max-width:600px){.wrap{padding:12px}header{padding:20px}.big{font-size:25px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎯 Extra 300 € / mese</h1>
+    <div class="sub">Un piccolo centro di controllo per trasformare tempo e competenze in un'entrata aggiuntiva reale.</div>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="label">Obiettivo mensile</div><div class="big" id="target">300 €</div></div>
+    <div class="card"><div class="label">Entrate extra confermate</div><div class="big" id="actual">0 €</div></div>
+    <div class="card"><div class="label">Mancano all'obiettivo</div><div class="big" id="missing">300 €</div></div>
+  </div>
+
+  <section class="card">
+    <h2>Calcola se un'opportunità vale la pena</h2>
+    <div class="row">
+      <div class="field"><label>Guadagno lordo (€)</label><input id="gross" type="number" min="0" step="1" value="80"></div>
+      <div class="field"><label>Costi (€)</label><input id="cost" type="number" min="0" step="1" value="15"></div>
+      <div class="field"><label>Ore impiegate</label><input id="hours" type="number" min="0.1" step="0.1" value="3"></div>
+      <div class="field"><button onclick="calc()">Valuta</button></div>
+    </div>
+    <div class="result" id="calcResult">Inserisci i dati: calcoliamo guadagno netto e €/ora.</div>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Opportunità da testare</h2>
+    <p class="muted">Partiamo dalle attività compatibili con esperienza, orari e competenze. L'app non promette guadagni: serve a selezionare e testare idee misurabili.</p>
+    <table>
+      <thead><tr><th>Idea</th><th>Modello</th><th>Test iniziale</th><th>Obiettivo</th></tr></thead>
+      <tbody>
+        <tr><td>NCC / trasferimenti extra</td><td>servizio locale</td><td>1–2 clienti/settimana</td><td>100–200 €/mese</td></tr>
+        <tr><td>Mini web app per autisti</td><td>prodotto digitale</td><td>prima versione gratuita + richiesta contatto</td><td>50–300 €/mese</td></tr>
+        <tr><td>Template / strumenti per autisti</td><td>digitale</td><td>1 prodotto vendibile</td><td>30–150 €/mese</td></tr>
+        <tr><td>Segnalazioni / lead locali</td><td>commissione</td><td>1 nicchia + landing</td><td>50–250 €/mese</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Obiettivo auto</h2>
+    <div class="row">
+      <div class="field"><label>Prezzo auto (€)</label><input id="car" type="number" value="14000"></div>
+      <div class="field"><label>Capitale già disponibile (€)</label><input id="saved" type="number" value="0"></div>
+      <div class="field"><label>Extra netto mensile destinato all'auto (€)</label><input id="monthly" type="number" value="300"></div>
+      <div class="field"><button onclick="carPlan()">Simula</button></div>
+    </div>
+    <div class="result" id="carResult"></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Registro risultati</h2>
+    <p class="muted">Regola: un'attività passa da “idea” a “entrata” solo quando produce denaro realmente incassato.</p>
+    <div class="row">
+      <div class="field"><label>Nome attività</label><input id="name" placeholder="es. Web app autisti"></div>
+      <div class="field"><label>Incasso (€)</label><input id="income" type="number" min="0" value="50"></div>
+      <div class="field"><button onclick="addIncome()">Aggiungi incasso</button></div>
+    </div>
+    <div id="log"></div>
+  </section>
+</div>
+<script>
+  const KEY='extra300-log-v1';
+  let entries=JSON.parse(localStorage.getItem(KEY)||'[]');
+  function money(v){return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v)}
+  function refresh(){
+    const actual=entries.reduce((s,e)=>s+e.income,0), target=300;
+    document.getElementById('actual').textContent=money(actual);
+    document.getElementById('missing').textContent=money(Math.max(0,target-actual));
+    document.getElementById('log').innerHTML=entries.length?'<table><thead><tr><th>Attività</th><th>Incasso</th><th>Data</th></tr></thead><tbody>'+entries.map(e=>`<tr><td>${escapeHtml(e.name)}</td><td>${money(e.income)}</td><td>${e.date}</td></tr>`).join('')+'</tbody></table>':'<p class="muted">Nessun incasso registrato.</p>';
+  }
+  function calc(){
+    const gross=+document.getElementById('gross').value||0,cost=+document.getElementById('cost').value||0,h=+document.getElementById('hours').value||0.1,net=gross-cost,perHour=net/h;
+    document.getElementById('calcResult').innerHTML=`Netto stimato: <b>${money(net)}</b> · rendimento: <b>${money(perHour)}/ora</b> · per arrivare a 300 €/mese servirebbero circa <b>${Math.ceil(300/net)||'—'}</b> attività di questo tipo.`;
+  }
+  function carPlan(){
+    const car=+document.getElementById('car').value||0,saved=+document.getElementById('saved').value||0,m=+document.getElementById('monthly').value||0,need=Math.max(0,car-saved),months=m?Math.ceil(need/m):Infinity;
+    document.getElementById('carResult').innerHTML=`Capitale da coprire: <b>${money(need)}</b> · a ${money(m)}/mese: <b>${isFinite(months)?months+' mesi':'non calcolabile'}</b>.`;
+    document.getElementById('fill').style.width=Math.min(100,saved/car*100)+'%';
+  }
+  function addIncome(){
+    const name=document.getElementById('name').value.trim()||'Entrata extra', income=+document.getElementById('income').value||0;
+    if(income<=0)return;
+    entries.push({name,income,date:new Date().toLocaleDateString('it-IT')});
+    localStorage.setItem(KEY,JSON.stringify(entries));refresh();
+    document.getElementById('name').value='';
+  }
+  function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+  refresh();calc();carPlan();
+</script>
+</body>
+</html>
