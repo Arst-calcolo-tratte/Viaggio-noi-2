@@ -1,4 +1,4 @@
-name: Fix app JavaScript
+name: Validate app JavaScript
 
 on:
   push:
@@ -6,31 +6,40 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  fix:
+  validate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Fix syntax error introduced in index.html
+      - name: Validate every inline JavaScript block
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          bad = "t4.splitPercents={[t4.participants[0]]:61.5,[t4.participants[1]]:38.5};"
-          good = "t4.splitPercents={};t4.splitPercents[t4.participants[0]]=61.5;t4.splitPercents[t4.participants[1]]=38.5;"
-          if bad in s:
-              p.write_text(s.replace(bad, good), encoding='utf-8')
+          import re
+          html = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.I|re.S)
+          if not scripts:
+              raise SystemExit('No inline JavaScript blocks found')
+          for i, script in enumerate(scripts, 1):
+              Path(f'/tmp/script-{i}.js').write_text(script, encoding='utf-8')
+          print(f'Found {len(scripts)} JavaScript block(s)')
           PY
-      - name: Commit fix
+          for f in /tmp/script-*.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+          echo 'JavaScript syntax: OK'
+      - name: Check critical split code
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git diff --cached --quiet || git commit -m "Fix JavaScript syntax error in travel app"
-          git push
+          grep -F "t4.splitPercents[t4.participants[0]]=61.5" index.html
+          grep -F "t4.splitPercents[t4.participants[1]]=38.5" index.html
+          if grep -Fq "t4.splitPercents={[t4.participants[0]]" index.html; then
+            echo 'Old invalid syntax is still present'
+            exit 1
+          fi
+          echo 'Critical split code: OK'
