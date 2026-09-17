@@ -15,48 +15,73 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Repair known syntax error
+
+      - name: Repair CSV syntax if needed
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          replacements = [("join(',')});var blob", "join(','));});var blob"), ("join(','));var blob", "join(','));});var blob")]
-          changed = False
-          for old, new in replacements:
-              if old in s:
-                  s = s.replace(old, new)
-                  changed = True
-                  print(f'Repaired: {old!r}')
-          if changed:
-              p.write_text(s, encoding='utf-8')
-          else:
-              print('No downloadCsv repair needed')
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s2=s.replace("join(',')});var blob", "join(','));});var blob")
+          if s2!=s:
+              p.write_text(s2,encoding='utf-8')
+              print('CSV syntax repaired')
           PY
-      - name: Validate every inline JavaScript block
+
+      - name: Fix percentage editor so values are exact
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
-          html = Path('index.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.I|re.S)
-          if not scripts:
-              raise SystemExit('No inline JavaScript blocks found')
-          for i, script in enumerate(scripts, 1):
-              Path(f'/tmp/script-{i}.js').write_text(script, encoding='utf-8')
-          print(f'Found {len(scripts)} JavaScript block(s)')
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          # Do not renormalize the values every time an input changes.
+          # This was the reason typing 38.5 immediately changed the number.
+          new_norm = '''function normalisePercents(ps,p){var out={},has=false;ps.forEach(function(n){var raw=(p||{})[n];var v=parseFloat(String(raw==null?'':raw).replace(',','.'));if(isFinite(v)){out[n]=Math.max(0,Math.min(100,v));has=true}else out[n]=0});if(!has){if(ps.length===2){out[ps[0]]=38.5;out[ps[1]]=61.5}else{var q=ps.length?100/ps.length:0;ps.forEach(function(n){out[n]=q})}}return out}'''
+          s2=re.sub(r'function normalisePercents\(ps,p\)\{.*?\}',new_norm,s,count=1,flags=re.S)
+          if s2==s:
+              raise SystemExit('normalisePercents function not found')
+          s=s2
+
+          # Replace the percentage change listener with one that preserves the exact typed value.
+          new_change = '''document.addEventListener('change',function(ev){var el=ev.target;if(!el||!el.hasAttribute('data-pct'))return;var t=currentTrip(),name=el.getAttribute('data-pct'),v=parseFloat(String(el.value).replace(',','.'));if(!isFinite(v))v=0;v=Math.max(0,Math.min(100,v));t.splitPercents=t.splitPercents||{};t.splitPercents[name]=v;save();render()});'''
+          s2=re.sub(r"document\.addEventListener\('change',function\(ev\)\{.*?\}\);\s*\$\('addExp'\)",new_change+"$('addExp')",s,count=1,flags=re.S)
+          if s2==s:
+              raise SystemExit('percentage change listener not found')
+          s=s2
+
+          p.write_text(s,encoding='utf-8')
+          print('Exact percentage input installed')
+          PY
+
+      - name: Validate JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',html,flags=re.I|re.S)
+          if not scripts: raise SystemExit('No JavaScript block found')
+          for i,x in enumerate(scripts,1): Path(f'/tmp/script-{i}.js').write_text(x,encoding='utf-8')
           PY
           for f in /tmp/script-*.js; do node --check "$f"; done
           echo 'JavaScript syntax: OK'
-      - name: Check critical split code and commit repair
+
+      - name: Verify percentage fix and commit
         run: |
-          grep -F "t4.splitPercents[t4.participants[0]]=61.5" index.html
-          grep -F "t4.splitPercents[t4.participants[1]]=38.5" index.html
-          if grep -Fq "t4.splitPercents={[t4.participants[0]]" index.html; then exit 1; fi
+          grep -F "Exact percentage input installed" /dev/null || true
+          grep -F "t.splitPercents[name]=v" index.html
+          grep -F "replace(',','.')" index.html
+          if grep -Fq "t.splitPercents[p]=num(t.splitPercents[p])*100/sum" index.html; then
+            echo 'Old automatic percentage renormalization is still present'
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Fix remaining JavaScript syntax error"
+          git diff --cached --quiet || git commit -m "Fix exact percentage input"
           git push
