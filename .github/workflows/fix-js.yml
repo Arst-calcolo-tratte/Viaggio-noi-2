@@ -24,7 +24,7 @@ jobs:
           s2=s.replace("join(',')});var blob", "join(','));});var blob")
           if s2!=s: p.write_text(s2,encoding='utf-8')
           PY
-      - name: Fix percentage state and editor
+      - name: Fix split state and rendering
         shell: bash
         run: |
           python - <<'PY'
@@ -49,8 +49,7 @@ jobs:
                       elif c=='{': depth+=1
                       elif c=='}':
                           depth-=1
-                          if depth==0:
-                              return src[:start]+replacement+src[i+1:]
+                          if depth==0: return src[:start]+replacement+src[i+1:]
                   i+=1
               raise SystemExit(name+' closing brace not found')
 
@@ -65,40 +64,15 @@ jobs:
           old_add="""t4.splitPercents[t4.participants[0]]=61.5;t4.splitPercents[t4.participants[1]]=38.5;"""
           new_add="""t4.splitPercents[t4.participants[0]]=38.5;t4.splitPercents[t4.participants[1]]=61.5;"""
           if old_add in s: s=s.replace(old_add,new_add,1)
+
+          new_render="""function renderSplit(){var sec=$('splitSec'),card=$('splitCard');if(!sec||!card)return;var s=null;try{s=computeSplit()}catch(e){s=null}if(!s){sec.hidden=true;card.innerHTML='';return}sec.hidden=false;var editor='';try{editor=renderPercentEditor()||''}catch(e){editor=''}var rs=s.rows.map(function(r){var bal=Math.abs(r.balance)<.005?'In pari':(r.balance>0?'Deve ricevere '+cur()+' '+money(r.balance):'Deve pagare '+cur()+' '+money(-r.balance));return '<div class=\"split-row\"><div class=\"split-person\"><b>'+esc(r.name)+'</b><span>Quota '+r.pct.toFixed(1)+'% · '+cur()+' '+money(r.share)+'</span></div><div class=\"split-paid\"><span>Pagato</span><b>'+cur()+' '+money(r.paid)+'</b></div><div class=\"split-balance\">'+bal+'</div></div>'}).join('');card.innerHTML=editor+'<div class=\"split-list\"><h3>Chi paga cosa</h3><div class=\"ssub\">La quota di ciascuno viene calcolata con la percentuale impostata.</div>'+rs+'</div>'}"""
+          s=replace_function(s,'renderSplit',new_render)
+
+          css=""".split-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap}.split-person{flex:1;min-width:130px}.split-person b{display:block;font-size:14.5px;font-weight:500}.split-person span,.split-paid span{display:block;font-size:12px;color:var(--muted)}.split-paid{text-align:right}.split-paid b{font-size:14px;font-weight:600}.split-balance{width:100%;font-size:12.5px;color:var(--turq-dark);font-weight:500}.split-list h3{margin:0;padding:14px 14px 4px;font-size:15px;font-weight:600}.split-list .ssub{padding:0 14px 10px;font-size:12px;color:var(--muted)}"""
+          if '.split-row{' not in s:
+              s=s.replace('</style>',css+'</style>',1)
           p.write_text(s,encoding='utf-8')
-          print('Percentage state/editor/defaults fixed')
-          PY
-      - name: Diagnose split rendering
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          s=Path('index.html').read_text(encoding='utf-8')
-          def fn(name):
-              marker='function '+name+'('
-              a=s.find(marker)
-              if a<0: return 'NOT FOUND'
-              b=s.find('{',a); depth=0; quote=None; esc=False; i=b
-              while i<len(s):
-                  c=s[i]
-                  if quote:
-                      if esc: esc=False
-                      elif c=='\\': esc=True
-                      elif c==quote: quote=None
-                  else:
-                      if c in "'\"`": quote=c
-                      elif c=='{': depth+=1
-                      elif c=='}':
-                          depth-=1
-                          if depth==0: return s[a:i+1]
-                  i+=1
-              return 'UNTERMINATED'
-          for name in ['normalisePercents','computeSplit','renderPercentEditor','render']:
-              print('\n=== '+name+' ===')
-              print(fn(name))
-          print('\n=== split markup references ===')
-          for m in re.finditer(r'.{0,180}(?:splitSec|splitCard|Chi paga cosa|renderPercentEditor).{0,220}',s): print(m.group(0))
+          print('Split rendering fixed')
           PY
       - name: Validate JavaScript
         shell: bash
@@ -113,15 +87,17 @@ jobs:
           PY
           for f in /tmp/script-*.js; do node --check "$f"; done
           echo 'JavaScript syntax: OK'
-      - name: Verify percentage fix and commit
+      - name: Verify split fix and commit
         run: |
           grep -F "return{values:out,total:" index.html
           grep -F "t.splitPercents[name]=v" index.html
+          grep -F "function renderSplit(){var sec=$('splitSec')" index.html
+          grep -F ".split-row{" index.html
           grep -F "t4.splitPercents[t4.participants[0]]=38.5" index.html
           grep -F "t4.splitPercents[t4.participants[1]]=61.5" index.html
           if grep -Fq "t.splitPercents[p]=num(t.splitPercents[p])*100/sum" index.html; then exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Fix split editor coherently"
+          git diff --cached --quiet || git commit -m "Fix missing split section"
           git push
